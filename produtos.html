@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Produtos — DomRoping</title>
+  <meta name="description" content="Catálogo completo DomRoping: filtre por categoria, marca e preço entre botas, chapéus, laços, selas e mais equipamentos country.">
+  <link rel="icon" type="image/png" href="assets/icons/favicon.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600&family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="trust-bar" aria-label="Selos de confiança DomRoping">
+    <div class="trust-bar__track">
+      <span class="trust-bar__item">✔ Produtos selecionados manualmente</span>
+      <span class="trust-bar__item">✔ Links seguros</span>
+      <span class="trust-bar__item">✔ Atualizações frequentes</span>
+      <span class="trust-bar__item">✔ Compras realizadas em lojas oficiais</span>
+    </div>
+  </div>
+
+  <header class="header" id="header">
+    <div class="header__inner container">
+      <a href="index.html" class="brand" aria-label="DomRoping — página inicial">
+        <img src="assets/images/logo-navy.png" alt="DomRoping" class="brand__mark">
+        <span class="brand__word">Dom<strong>Roping</strong></span>
+      </a>
+
+      <nav class="nav" id="mainNav" aria-label="Navegação principal">
+        <ul class="nav__list">
+          <li class="nav__item nav__item--dropdown">
+            <button class="nav__link" aria-expanded="false" aria-haspopup="true">Categorias</button>
+            <div class="nav__dropdown" id="categoriesDropdown"></div>
+          </li>
+          <li class="nav__item"><a href="marcas.html" class="nav__link">Marcas</a></li>
+          <li class="nav__item"><a href="produtos.html" class="nav__link">Todos os produtos</a></li>
+          <li class="nav__item"><a href="index.html#contato" class="nav__link">Contato</a></li>
+        </ul>
+      </nav>
+
+      <div class="header__actions">
+        <div class="search" id="searchBox">
+          <button class="search__toggle" id="searchToggle" aria-label="Abrir busca">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </button>
+          <input type="text" id="searchInput" class="search__input" placeholder="Buscar marca, categoria ou produto…" autocomplete="off">
+        </div>
+
+        <button class="icon-btn" id="favoritesBtn" aria-label="Favoritos">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7.5-4.6-10-9.3C.5 8 2 4.5 5.6 4c2-.3 3.8.6 4.9 2.3C11.6 4.6 13.4 3.7 15.4 4 19 4.5 20.5 8 19 11.7 16.5 16.4 9 21 9 21z" transform="translate(3 0) scale(0.9)"/></svg>
+          <span class="icon-btn__badge" id="favCount">0</span>
+        </button>
+
+        <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+
+    <div class="search-results" id="searchResults" hidden></div>
+  </header>
+
+  <main>
+    <!-- Faixa de título da página — muda de acordo com o filtro ativo (categoria, marca ou busca) -->
+    <section class="page-head">
+      <div class="container">
+        <nav class="breadcrumb" aria-label="Caminho">
+          <a href="index.html">Início</a><span>/</span><span id="breadcrumbCurrent">Produtos</span>
+        </nav>
+        <h1 class="page-head__title" id="pageTitle">Todos os produtos</h1>
+        <p class="page-head__desc" id="pageDesc">Filtre por marca, categoria ou faixa de preço para encontrar exatamente o que precisa.</p>
+      </div>
+    </section>
+
+    <section class="section section--muted" style="padding-top:0;">
+      <div class="container">
+
+        <!-- Chips de subcategoria — só aparecem para categorias que possuem subcategorias (ex.: Equipamentos para Cavalo) -->
+        <div class="subcat-chips" id="subcatChips" hidden></div>
+
+        <div class="filters" id="filters">
+          <div class="filter-group">
+            <label for="filterCategory">Categoria</label>
+            <select id="filterCategory"><option value="">Todas</option></select>
+          </div>
+          <div class="filter-group">
+            <label for="filterBrand">Marca</label>
+            <select id="filterBrand"><option value="">Todas</option></select>
+          </div>
+          <div class="filter-group">
+            <label for="filterPrice">Preço até</label>
+            <select id="filterPrice">
+              <option value="">Sem limite</option>
+              <option value="200">Até R$200</option>
+              <option value="400">Até R$400</option>
+              <option value="800">Até R$800</option>
+              <option value="1500">Até R$1.500</option>
+            </select>
+          </div>
+          <button class="btn btn--outline" id="clearFilters" type="button">Limpar filtros</button>
+        </div>
+
+        <p class="results-count" id="resultsCount"></p>
+        <div class="products-grid" id="productsGrid"></div>
+        <p class="empty-state" id="emptyState" hidden>Nenhum produto encontrado com esses filtros. Tente ajustar a busca.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer" id="contato">
+    <div class="container footer__grid">
+      <div class="footer__brand">
+        <img src="assets/images/logo-silver.png" alt="DomRoping" class="footer__mark">
+        <p>Curadoria premium de equipamentos do mundo country.</p>
+        <a href="https://instagram.com" target="_blank" rel="noopener" class="footer__social" aria-label="Instagram da DomRoping">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>
+          Instagram
+        </a>
+      </div>
+
+      <div class="footer__col">
+        <h3>Institucional</h3>
+        <ul>
+          <li><a href="produtos.html">Todos os produtos</a></li>
+          <li><a href="marcas.html">Marcas</a></li>
+          <li><a href="#" id="footerPrivacy">Política de Privacidade</a></li>
+          <li><a href="#" id="footerAffiliates">Programa de Afiliados</a></li>
+        </ul>
+      </div>
+
+      <div class="footer__col">
+        <h3>Contato</h3>
+        <ul>
+          <li><a href="mailto:contato@domroping.com.br">contato@domroping.com.br</a></li>
+          <li>Atendimento: seg. a sex., 9h–18h</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer__disclaimer container">
+      <p>A DomRoping participa de programas de afiliados. Ao comprar através dos nossos links, poderemos receber uma pequena comissão, sem qualquer custo adicional para você.</p>
+    </div>
+
+    <div class="footer__bottom container">
+      <span>© <span id="year"></span> DomRoping. Todos os direitos reservados.</span>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="data.js"></script>
+  <script src="common.js"></script>
+  <script src="catalogo.js"></script>
+</body>
+</html>
