@@ -85,12 +85,9 @@ function productCard(product, { badgeText = "" } = {}) {
         <div class="product-card__body">
           <span class="product-card__brand">${product.marca}</span>
           <h3 class="product-card__name">${product.nome}</h3>
-          <div class="product-card__prices">
-            ${product.precoAnterior ? `<span class="product-card__price-old">${formatPrice(product.precoAnterior)}</span>` : ""}
-            <span class="product-card__price">${formatPrice(product.preco)}</span>
-          </div>
+          <span class="product-card__price-old">${product.precoAnterior ? formatPrice(product.precoAnterior) : "\u00A0"}</span>
+          <span class="product-card__price">${formatPrice(product.preco)}</span>
           <span class="product-card__store">Vendido por ${product.loja}</span>
-          <span class="btn product-card__cta">Ver produto</span>
         </div>
       </a>
       <button class="product-card__fav ${isFav ? "is-active" : ""}" data-fav="${product.id}" aria-label="Favoritar ${product.nome}" aria-pressed="${isFav}">
@@ -109,11 +106,10 @@ document.addEventListener("click", (e) => {
 function renderCategoriesDropdown() {
   const dropdown = $("#categoriesDropdown");
   if (!dropdown) return;
-  const items = CATEGORIES.map(cat => {
-    const count = PRODUCTS.filter(p => p.categoria === cat).length;
-    return `<a href="produtos.html?cat=${encodeURIComponent(cat)}">${cat}<span>${count}</span></a>`;
-  }).join("");
-  dropdown.innerHTML = items + `<a href="marcas.html" class="nav__dropdown-marcas">Ver todas as marcas<span>${BRANDS.length}</span></a>`;
+  const items = NAV_CATEGORIES.map(cat =>
+    `<a href="produtos.html?cat=${encodeURIComponent(cat)}">${categoryLabel(cat)}</a>`
+  ).join("");
+  dropdown.innerHTML = items + `<a href="marcas.html" class="nav__dropdown-marcas">Marcas</a>`;
 }
 
 /* ---------- CABEÇALHO: busca instantânea ---------- */
@@ -191,6 +187,7 @@ function initFavoritesButton() {
 function initMobileMenu() {
   const menuToggle = $("#menuToggle");
   const mainNav = $("#mainNav");
+  const navClose = $("#navClose");
   if (!menuToggle || !mainNav) return;
 
   function setOpen(open) {
@@ -201,6 +198,7 @@ function initMobileMenu() {
   }
 
   menuToggle.addEventListener("click", () => setOpen(!mainNav.classList.contains("is-open")));
+  if (navClose) navClose.addEventListener("click", () => setOpen(false));
 
   $$(".nav__item--dropdown > .nav__link").forEach(btn => {
     btn.addEventListener("click", () => {

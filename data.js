@@ -28,6 +28,16 @@ const SUBCATEGORIES = {
   "Equipamentos para Cavalo": ["Selas", "Rédeas", "Freios", "Cabrestos", "Mantas", "Barrigueiras", "Outros equipamentos"],
 };
 
+/* Lista enxuta usada na navegação rápida (Home + dropdown do cabeçalho) —
+   propositalmente mais curta que CATEGORIES, sem "Acessórios", que continua
+   existindo só como filtro dentro do catálogo completo. */
+const NAV_CATEGORIES = ["Laços", "Calças", "Camisas", "Camisetas", "Botas", "Chapéus", "Equipamentos para Cavalo"];
+
+const CATEGORY_LABELS = {
+  "Equipamentos para Cavalo": "Equipamentos",
+};
+function categoryLabel(cat) { return CATEGORY_LABELS[cat] || cat; }
+
 const BRANDS = ["Ariat", "Cinch", "Classic Rope", "Fast Back", "Professionals Choice", "Justin", "Twisted X", "Wrangler", "Martin Saddlery", "Resistol"];
 
 const CATEGORY_ICONS = {

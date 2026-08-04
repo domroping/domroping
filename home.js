@@ -5,18 +5,10 @@
 function renderCategoriesGrid() {
   const grid = $("#categoriesGrid");
   if (!grid) return;
-  grid.innerHTML = CATEGORIES.map(cat => `
-    <a class="category-card" href="produtos.html?cat=${encodeURIComponent(cat)}">
-      <span class="category-card__icon">${CATEGORY_ICONS[cat] || ""}</span>
-      <span class="category-card__name">${cat}</span>
-      <span class="category-card__count">${PRODUCTS.filter(p => p.categoria === cat).length} produtos</span>
-    </a>
-  `).join("") + `
-    <a class="category-card category-card--marcas" href="marcas.html">
-      <span class="category-card__icon">${CATEGORY_ICONS["Marcas"]}</span>
-      <span class="category-card__name">Marcas</span>
-      <span class="category-card__count">${BRANDS.length} marcas</span>
-    </a>`;
+  const items = NAV_CATEGORIES.map(cat =>
+    `<a class="category-tag" href="produtos.html?cat=${encodeURIComponent(cat)}">${categoryLabel(cat)}</a>`
+  ).join("");
+  grid.innerHTML = items + `<a class="category-tag category-tag--marcas" href="marcas.html">Marcas</a>`;
 }
 
 function renderRecommend() {
