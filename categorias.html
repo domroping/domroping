@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Favoritos — DomRoping</title>
-  <meta name="description" content="Seus produtos favoritos na DomRoping, salvos neste navegador.">
+  <title id="pageTitleTag">Categorias — DomRoping</title>
+  <meta name="description" content="Navegue pelas categorias da DomRoping: Vestuário, Acessórios e Equipamentos.">
   <link rel="icon" type="image/png" href="assets/icons/favicon.png">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -56,8 +56,8 @@
           <input type="text" id="searchInput" class="search__input" placeholder="Buscar marca, categoria ou produto…" autocomplete="off">
         </div>
 
-        <button class="icon-btn icon-btn--active" id="favoritesBtn" aria-label="Favoritos">
-          <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1"><path d="M12 21s-7.5-4.6-10-9.3C.5 8 2 4.5 5.6 4c2-.3 3.8.6 4.9 2.3C11.6 4.6 13.4 3.7 15.4 4 19 4.5 20.5 8 19 11.7 16.5 16.4 9 21 9 21z" transform="translate(3 0) scale(0.9)"/></svg>
+        <button class="icon-btn" id="favoritesBtn" aria-label="Favoritos">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7.5-4.6-10-9.3C.5 8 2 4.5 5.6 4c2-.3 3.8.6 4.9 2.3C11.6 4.6 13.4 3.7 15.4 4 19 4.5 20.5 8 19 11.7 16.5 16.4 9 21 9 21z" transform="translate(3 0) scale(0.9)"/></svg>
           <span class="icon-btn__badge" id="favCount">0</span>
         </button>
 
@@ -73,24 +73,17 @@
   <main>
     <section class="page-head">
       <div class="container">
-        <nav class="breadcrumb" aria-label="Caminho">
-          <a href="index.html">Início</a><span>/</span><span>Favoritos</span>
+        <nav class="breadcrumb" id="breadcrumb" aria-label="Caminho">
+          <a href="index.html">Início</a><span>/</span><span>Categorias</span>
         </nav>
-        <h1 class="page-head__title">Seus favoritos</h1>
-        <p class="page-head__desc">Produtos que você marcou com o coração. Salvos neste navegador — não somem se você atualizar a página.</p>
+        <h1 class="page-head__title" id="pageTitle">Categorias</h1>
+        <p class="page-head__desc" id="pageDesc">Escolha uma categoria pra ver as subcategorias.</p>
       </div>
     </section>
 
-    <section class="section section--muted" style="padding-top:0;">
+    <section class="section">
       <div class="container">
-        <div class="products-grid" id="favoritesGrid"></div>
-
-        <div class="empty-state empty-state--favorites" id="favoritesEmpty" hidden>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 21s-7.5-4.6-10-9.3C.5 8 2 4.5 5.6 4c2-.3 3.8.6 4.9 2.3C11.6 4.6 13.4 3.7 15.4 4 19 4.5 20.5 8 19 11.7 16.5 16.4 9 21 9 21z" transform="translate(3 0) scale(0.9)"/></svg>
-          <h2>Sua lista de favoritos está vazia</h2>
-          <p>Toque no coração de qualquer produto pra guardar aqui e comparar depois.</p>
-          <a href="produtos.html" class="btn btn--primary">Explorar produtos</a>
-        </div>
+        <div class="categories" id="categoriesList"></div>
       </div>
     </section>
   </main>
@@ -139,6 +132,6 @@
 
   <script src="data.js"></script>
   <script src="common.js"></script>
-  <script src="favoritos.js"></script>
+  <script src="categorias.js"></script>
 </body>
 </html>

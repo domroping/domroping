@@ -5,8 +5,8 @@
 function renderCategoriesGrid() {
   const grid = $("#categoriesGrid");
   if (!grid) return;
-  const items = NAV_CATEGORIES.map(cat =>
-    `<a class="category-tag" href="produtos.html?cat=${encodeURIComponent(cat)}">${categoryLabel(cat)}</a>`
+  const items = MAIN_CATEGORIES.map(cat =>
+    `<a class="category-tag" href="categorias.html?principal=${encodeURIComponent(cat)}">${cat}</a>`
   ).join("");
   grid.innerHTML = items + `<a class="category-tag category-tag--marcas" href="marcas.html">Marcas</a>`;
 }
@@ -18,7 +18,7 @@ function renderRecommend() {
   grid.innerHTML = items.map(p => `
     <a class="recommend-card" href="produto.html?id=${p.id}" data-reveal>
       <div class="recommend-card__media">
-        ${p.imagens[0] ? `<img src="${p.imagens[0]}" alt="${p.nome}">` : placeholderMarkup(p.categoria)}
+        ${p.imagens[0] ? `<img src="${p.imagens[0]}" alt="${p.nome}">` : placeholderMarkup(p)}
         <span class="recommend-card__tag">${p.recomendado}</span>
       </div>
       <div class="recommend-card__body">

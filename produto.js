@@ -20,13 +20,13 @@ function renderGallery(product) {
 
   stage.innerHTML = slides.map((img, i) => `
     <div class="gallery__slide ${i === 0 ? "is-active" : ""}" data-slide="${i}">
-      ${img ? `<img src="${img}" alt="${product.nome} — foto ${i + 1}">` : placeholderMarkup(product.categoria, "lg")}
+      ${img ? `<img src="${img}" alt="${product.nome} — foto ${i + 1}">` : placeholderMarkup(product, "lg")}
     </div>
   `).join("");
 
   thumbs.innerHTML = slides.map((img, i) => `
     <button class="gallery__thumb ${i === 0 ? "is-active" : ""}" data-thumb="${i}" aria-label="Ver foto ${i + 1}">
-      ${img ? `<img src="${img}" alt="">` : placeholderMarkup(product.categoria, "sm")}
+      ${img ? `<img src="${img}" alt="">` : placeholderMarkup(product, "sm")}
     </button>
   `).join("");
 
@@ -83,12 +83,15 @@ function initGalleryControls() {
 
 /* ---------- INFORMAÇÕES ---------- */
 function renderInfo(product) {
-  $("#pageTitleTag").textContent = `${product.nome} — DomRoping`;
-  $("#infoBrand").textContent = product.marca;
-  $("#infoName").textContent = product.nome;
-  $("#infoDescricao").textContent = product.descricao;
+  const placeholder = isPlaceholderProduct(product);
+  const nome = placeholder ? "Produto em cadastro" : product.nome;
 
-  $("#infoPrice").textContent = formatPrice(product.preco);
+  $("#pageTitleTag").textContent = `${nome} — DomRoping`;
+  $("#infoBrand").textContent = product.marca || product.subcategoria;
+  $("#infoName").textContent = nome;
+  $("#infoDescricao").textContent = product.descricao || "Descrição em breve — este produto ainda está sendo cadastrado.";
+
+  $("#infoPrice").textContent = placeholder ? "Em breve" : formatPrice(product.preco);
   const desconto = discountPercent(product);
   if (product.precoAnterior) {
     $("#infoPriceOld").textContent = formatPrice(product.precoAnterior);
@@ -103,21 +106,25 @@ function renderInfo(product) {
     $("#infoDiscount").hidden = true;
   }
 
-  $("#infoCaracteristicas").innerHTML = (product.caracteristicas || []).map(c => `<li>${c}</li>`).join("");
+  const caracteristicas = product.caracteristicas || [];
+  $("#infoCaracteristicas").innerHTML = caracteristicas.length
+    ? caracteristicas.map(c => `<li>${c}</li>`).join("")
+    : `<li>Características em breve.</li>`;
 
-  $("#infoStore").textContent = `Vendido por ${product.loja}`;
+  $("#infoStore").textContent = product.loja ? `Vendido por ${product.loja}` : "Loja a definir";
   const catLink = $("#infoCategoria");
-  catLink.textContent = product.categoria;
-  catLink.href = `produtos.html?cat=${encodeURIComponent(product.categoria)}`;
+  catLink.textContent = product.subcategoria || product.categoria;
+  catLink.href = `produtos.html?cat=${encodeURIComponent(product.categoria)}&sub=${encodeURIComponent(product.subcategoria || "")}`;
   const lojaLink = $("#infoLoja2");
-  lojaLink.textContent = product.loja;
+  lojaLink.textContent = product.loja || "—";
   lojaLink.href = "#";
   lojaLink.addEventListener("click", (e) => e.preventDefault());
 
   const breadcrumbHTML = `
     <a href="index.html">Início</a><span>/</span>
     <a href="produtos.html?cat=${encodeURIComponent(product.categoria)}">${product.categoria}</a><span>/</span>
-    <span>${product.nome}</span>`;
+    <a href="produtos.html?cat=${encodeURIComponent(product.categoria)}&sub=${encodeURIComponent(product.subcategoria || "")}">${product.subcategoria || product.categoria}</a><span>/</span>
+    <span>${nome}</span>`;
   $("#breadcrumb").innerHTML = breadcrumbHTML;
   $("#breadcrumbInline").innerHTML = breadcrumbHTML;
 
@@ -145,7 +152,11 @@ function renderInfo(product) {
 
 /* ---------- RELACIONADOS ---------- */
 function renderRelated(product) {
-  const related = PRODUCTS.filter(p => p.id !== product.id && p.categoria === product.categoria).slice(0, 8);
+  let related = PRODUCTS.filter(p => p.id !== product.id && p.subcategoria === product.subcategoria);
+  if (related.length < 3) {
+    related = PRODUCTS.filter(p => p.id !== product.id && p.categoria === product.categoria);
+  }
+  related = related.slice(0, 8);
   if (!related.length) return;
   $("#relatedSection").hidden = false;
   $("#relatedGrid").innerHTML = related.map(p => productCard(p)).join("");

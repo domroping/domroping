@@ -48,17 +48,18 @@ function showToast(message) {
 
 /* ---------- FORMATAÇÃO ---------- */
 function formatPrice(value) {
+  if (value === null || value === undefined) return "";
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
 function discountPercent(product) {
-  if (!product.precoAnterior || product.precoAnterior <= product.preco) return 0;
+  if (!product.preco || !product.precoAnterior || product.precoAnterior <= product.preco) return 0;
   return Math.round((1 - product.preco / product.precoAnterior) * 100);
 }
 
 /* ---------- PLACEHOLDER DE IMAGEM ---------- */
-function placeholderMarkup(category, size = "md") {
-  const icon = CATEGORY_ICONS[category] || CATEGORY_ICONS["Acessórios"];
+function placeholderMarkup(product, size = "md") {
+  const icon = iconFor(product);
   return `<div class="product-placeholder product-placeholder--${size}">${icon}<span>Imagem do produto</span></div>`;
 }
 
@@ -67,30 +68,36 @@ const heartIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
 /* ---------- CARD DE PRODUTO (link real para a página do produto) ---------- */
 function productCard(product, { badgeText = "" } = {}) {
   const capa = product.imagens && product.imagens[0];
+  const isPlaceholder = isPlaceholderProduct(product);
   const media = capa
     ? `<img src="${capa}" alt="${product.nome} — ${product.marca}" loading="lazy">`
-    : placeholderMarkup(product.categoria);
+    : placeholderMarkup(product);
 
   const isFav = favorites.has(product.id);
   const desconto = discountPercent(product);
-  const badge = badgeText || (desconto > 0 ? `-${desconto}%` : "");
+  const badge = badgeText || (isPlaceholder ? "Em breve" : (desconto > 0 ? `-${desconto}%` : ""));
+
+  const nome = isPlaceholder ? "Produto em cadastro" : product.nome;
+  const marca = product.marca || "\u00A0";
+  const precoTexto = isPlaceholder ? "Em breve" : formatPrice(product.preco);
+  const loja = product.loja ? `Vendido por ${product.loja}` : "\u00A0";
 
   return `
-    <article class="product-card" data-id="${product.id}">
-      <a class="product-card__link" href="produto.html?id=${product.id}" aria-label="Ver detalhes de ${product.nome}">
+    <article class="product-card ${isPlaceholder ? "product-card--placeholder" : ""}" data-id="${product.id}">
+      <a class="product-card__link" href="produto.html?id=${product.id}" aria-label="Ver detalhes de ${nome}">
         <div class="product-card__media">
           ${media}
           ${badge ? `<span class="product-card__badge">${badge}</span>` : ""}
         </div>
         <div class="product-card__body">
-          <span class="product-card__brand">${product.marca}</span>
-          <h3 class="product-card__name">${product.nome}</h3>
+          <span class="product-card__brand">${marca}</span>
+          <h3 class="product-card__name">${nome}</h3>
           <span class="product-card__price-old">${product.precoAnterior ? formatPrice(product.precoAnterior) : "\u00A0"}</span>
-          <span class="product-card__price">${formatPrice(product.preco)}</span>
-          <span class="product-card__store">Vendido por ${product.loja}</span>
+          <span class="product-card__price">${precoTexto}</span>
+          <span class="product-card__store">${loja}</span>
         </div>
       </a>
-      <button class="product-card__fav ${isFav ? "is-active" : ""}" data-fav="${product.id}" aria-label="Favoritar ${product.nome}" aria-pressed="${isFav}">
+      <button class="product-card__fav ${isFav ? "is-active" : ""}" data-fav="${product.id}" aria-label="Favoritar ${nome}" aria-pressed="${isFav}">
         ${heartIcon}
       </button>
     </article>`;
@@ -101,16 +108,6 @@ document.addEventListener("click", (e) => {
   const favBtn = e.target.closest("[data-fav]");
   if (favBtn) { e.preventDefault(); toggleFavorite(favBtn.dataset.fav); return; }
 });
-
-/* ---------- CABEÇALHO: dropdown de categorias ---------- */
-function renderCategoriesDropdown() {
-  const dropdown = $("#categoriesDropdown");
-  if (!dropdown) return;
-  const items = NAV_CATEGORIES.map(cat =>
-    `<a href="produtos.html?cat=${encodeURIComponent(cat)}">${categoryLabel(cat)}</a>`
-  ).join("");
-  dropdown.innerHTML = items + `<a href="marcas.html" class="nav__dropdown-marcas">Marcas</a>`;
-}
 
 /* ---------- CABEÇALHO: busca instantânea ---------- */
 function initHeaderSearch() {
@@ -145,7 +142,7 @@ function initHeaderSearch() {
     searchResults.innerHTML = `<div class="search-results__inner">
       ${results.map(p => `
         <a class="search-result" href="produto.html?id=${p.id}">
-          <div class="search-result__thumb">${p.imagens[0] ? `<img src="${p.imagens[0]}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">` : placeholderMarkup(p.categoria, "sm")}</div>
+          <div class="search-result__thumb">${p.imagens[0] ? `<img src="${p.imagens[0]}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">` : placeholderMarkup(p, "sm")}</div>
           <div>
             <div class="search-result__name">${p.nome}</div>
             <div class="search-result__meta">${p.marca} · ${p.categoria} · ${formatPrice(p.preco)}</div>
@@ -200,16 +197,7 @@ function initMobileMenu() {
   menuToggle.addEventListener("click", () => setOpen(!mainNav.classList.contains("is-open")));
   if (navClose) navClose.addEventListener("click", () => setOpen(false));
 
-  $$(".nav__item--dropdown > .nav__link").forEach(btn => {
-    btn.addEventListener("click", () => {
-      if (window.innerWidth > 980) return; // no desktop o dropdown já abre no hover
-      const item = btn.closest(".nav__item--dropdown");
-      const open = item.classList.toggle("is-open");
-      btn.setAttribute("aria-expanded", open);
-    });
-  });
-
-  $$(".nav__link, .nav__dropdown a").forEach(link => {
+  $$(".nav__link").forEach(link => {
     link.addEventListener("click", () => {
       if (window.innerWidth <= 980 && link.tagName === "A") setOpen(false);
     });
@@ -255,7 +243,6 @@ function initCommonLayout() {
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
   saveFavorites();
-  renderCategoriesDropdown();
   initHeaderSearch();
   initMobileMenu();
   initTrustBar();
@@ -265,6 +252,8 @@ function initCommonLayout() {
   if (privacy) privacy.addEventListener("click", (e) => { e.preventDefault(); showToast("Política de Privacidade em elaboração."); });
   const affiliates = $("#footerAffiliates");
   if (affiliates) affiliates.addEventListener("click", (e) => { e.preventDefault(); showToast("Programa de Afiliados em elaboração."); });
+  const cursos = $("#navCursos");
+  if (cursos) cursos.addEventListener("click", (e) => { e.preventDefault(); showToast("Cursos DomRoping em breve — em outro site."); });
 }
 
 document.addEventListener("DOMContentLoaded", initCommonLayout);

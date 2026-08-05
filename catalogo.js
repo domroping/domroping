@@ -1,9 +1,9 @@
 /* ==========================================================================
    DOMROPING — CATÁLOGO (produtos.html)
    Serve tanto como "ver todos os produtos" quanto como página dedicada de
-   cada categoria/marca/busca, lendo parâmetros da URL:
-     produtos.html?cat=Laços
-     produtos.html?cat=Equipamentos%20para%20Cavalo&sub=Selas
+   cada categoria/subcategoria/marca/busca, lendo parâmetros da URL:
+     produtos.html?cat=Equipamentos
+     produtos.html?cat=Acessórios&sub=Bonés
      produtos.html?marca=Ariat
      produtos.html?q=bota
    ========================================================================== */
@@ -14,7 +14,7 @@ function getParams() {
 
 function populateFilterOptions() {
   const catSelect = $("#filterCategory");
-  CATEGORIES.forEach(cat => {
+  MAIN_CATEGORIES.forEach(cat => {
     const opt = document.createElement("option");
     opt.value = cat; opt.textContent = cat;
     catSelect.appendChild(opt);
@@ -28,7 +28,7 @@ function populateFilterOptions() {
   });
 }
 
-function updatePageHead(category, brand, query) {
+function updatePageHead(category, brand, query, sub) {
   const title = $("#pageTitle");
   const desc = $("#pageDesc");
   const crumb = $("#breadcrumbCurrent");
@@ -38,6 +38,11 @@ function updatePageHead(category, brand, query) {
     desc.textContent = "Produtos que combinam com a sua busca.";
     crumb.textContent = "Busca";
     document.title = `Busca: ${query} — DomRoping`;
+  } else if (sub) {
+    title.textContent = sub;
+    desc.textContent = `${category} → ${sub}. Toda a seleção DomRoping, de qualquer marca.`;
+    crumb.textContent = sub;
+    document.title = `${sub} — DomRoping`;
   } else if (category) {
     title.textContent = category;
     desc.textContent = `Confira toda a seleção DomRoping em ${category}.`;
@@ -58,7 +63,7 @@ function updatePageHead(category, brand, query) {
 
 function renderSubcatChips(category, activeSub) {
   const wrap = $("#subcatChips");
-  const subs = SUBCATEGORIES[category];
+  const subs = CATEGORY_TREE[category];
   if (!subs) { wrap.hidden = true; wrap.innerHTML = ""; return; }
 
   wrap.hidden = false;
@@ -121,7 +126,7 @@ function init() {
   $("#filterCategory").value = category;
   $("#filterBrand").value = brand;
 
-  updatePageHead(category, brand, query);
+  updatePageHead(category, brand, query, sub);
   renderSubcatChips(category, sub);
 
   applyFilters();
