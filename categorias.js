@@ -9,9 +9,17 @@
 
 function renderMainCategories() {
   const list = $("#categoriesList");
+  list.className = "categories categories--main";
   list.innerHTML = MAIN_CATEGORIES.map(cat =>
-    `<a class="category-tag" href="categorias.html?principal=${encodeURIComponent(cat)}">${cat}</a>`
+    `<a class="category-tag category-tag--lg" href="categorias.html?principal=${encodeURIComponent(cat)}">${cat}</a>`
   ).join("");
+
+  $("#pageEyebrow").textContent = "Navegue por";
+  $("#pageTitle").textContent = "Categorias";
+  $("#pageTitleTag").textContent = "Categorias — DomRoping";
+  $("#pageDesc").textContent = "Escolha uma categoria pra ver as subcategorias.";
+  $("#categoriesBack").hidden = true;
+  $("#breadcrumb").innerHTML = `<a href="index.html">Início</a><span>/</span><span>Categorias</span>`;
 }
 
 function renderSubcategories(principal) {
@@ -24,13 +32,16 @@ function renderSubcategories(principal) {
     return;
   }
 
+  list.className = "categories categories--sub";
   list.innerHTML = subs.map(sub =>
     `<a class="category-tag" href="produtos.html?cat=${encodeURIComponent(principal)}&sub=${encodeURIComponent(sub)}">${sub}</a>`
   ).join("");
 
+  $("#pageEyebrow").textContent = "Categorias";
   $("#pageTitle").textContent = principal;
   $("#pageTitleTag").textContent = `${principal} — DomRoping`;
   $("#pageDesc").textContent = `Escolha uma subcategoria dentro de ${principal}.`;
+  $("#categoriesBack").hidden = false;
   $("#breadcrumb").innerHTML = `
     <a href="index.html">Início</a><span>/</span>
     <a href="categorias.html">Categorias</a><span>/</span>

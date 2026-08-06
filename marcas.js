@@ -4,7 +4,7 @@
 
 function init() {
   const grid = $("#brandsGrid");
-  grid.innerHTML = BRANDS.map(brand => {
+  grid.innerHTML = MAIN_BRANDS.map(brand => {
     const count = PRODUCTS.filter(p => p.marca === brand).length;
     return `
       <a class="brand-card" href="produtos.html?marca=${encodeURIComponent(brand)}">

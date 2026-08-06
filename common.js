@@ -187,11 +187,26 @@ function initMobileMenu() {
   const navClose = $("#navClose");
   if (!menuToggle || !mainNav) return;
 
+  let lockedScrollY = 0;
+
   function setOpen(open) {
     mainNav.classList.toggle("is-open", open);
     menuToggle.classList.toggle("is-open", open);
     menuToggle.setAttribute("aria-expanded", open);
-    document.body.classList.toggle("nav-open", open);
+
+    // Trava de scroll robusta para iOS: overflow:hidden sozinho no body é
+    // conhecido por falhar no Safari (o fundo ainda "arrasta"/dá bounce,
+    // o que passa a sensação de menu travado). Fixar o body na posição
+    // atual e restaurar o scroll ao fechar resolve isso de forma confiável.
+    if (open) {
+      lockedScrollY = window.scrollY;
+      document.body.classList.add("nav-open");
+      document.body.style.top = `-${lockedScrollY}px`;
+    } else {
+      document.body.classList.remove("nav-open");
+      document.body.style.top = "";
+      window.scrollTo(0, lockedScrollY);
+    }
   }
 
   menuToggle.addEventListener("click", () => setOpen(!mainNav.classList.contains("is-open")));
@@ -205,12 +220,6 @@ function initMobileMenu() {
 
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") setOpen(false);
-  });
-
-  document.addEventListener("click", (e) => {
-    if (!mainNav.classList.contains("is-open")) return;
-    if (mainNav.contains(e.target) || menuToggle.contains(e.target)) return;
-    setOpen(false);
   });
 
   window.addEventListener("resize", () => { if (window.innerWidth > 980) setOpen(false); });
