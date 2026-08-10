@@ -5,10 +5,9 @@
 function renderCategoriesGrid() {
   const grid = $("#categoriesGrid");
   if (!grid) return;
-  const items = MAIN_CATEGORIES.map(cat =>
+  grid.innerHTML = MAIN_CATEGORIES.map(cat =>
     `<a class="category-tag" href="categorias.html?principal=${encodeURIComponent(cat)}">${cat}</a>`
   ).join("");
-  grid.innerHTML = items + `<a class="category-tag category-tag--marcas" href="marcas.html">Marcas</a>`;
 }
 
 function renderRecommend() {

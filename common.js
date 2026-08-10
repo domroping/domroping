@@ -109,6 +109,33 @@ document.addEventListener("click", (e) => {
   if (favBtn) { e.preventDefault(); toggleFavorite(favBtn.dataset.fav); return; }
 });
 
+/* ---------- CABEÇALHO: categorias direto no menu ----------
+   Injeta Vestuário / Acessórios / Equipamentos (cada um com suas
+   subcategorias) antes do item "Favoritos". Vem de CATEGORY_TREE em
+   data.js, então se a taxonomia mudar, o menu acompanha sozinho. */
+function renderCategoryNav() {
+  const anchor = $("#navFavoritosItem");
+  if (!anchor) return;
+
+  const chevron = '<svg class="nav__link__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>';
+
+  const itemsHTML = MAIN_CATEGORIES.map(cat => {
+    const subLinks = CATEGORY_TREE[cat].map(sub =>
+      `<a href="produtos.html?cat=${encodeURIComponent(cat)}&sub=${encodeURIComponent(sub)}">${sub}</a>`
+    ).join("");
+    return `
+      <li class="nav__item nav__item--dropdown">
+        <button class="nav__link" aria-expanded="false" aria-haspopup="true">${cat}${chevron}</button>
+        <div class="nav__dropdown">
+          <span class="nav__dropdown-heading">${cat}</span>
+          ${subLinks}
+        </div>
+      </li>`;
+  }).join("");
+
+  anchor.insertAdjacentHTML("beforebegin", itemsHTML);
+}
+
 /* ---------- CABEÇALHO: busca instantânea ---------- */
 function initHeaderSearch() {
   const searchToggle = $("#searchToggle");
@@ -212,7 +239,25 @@ function initMobileMenu() {
   menuToggle.addEventListener("click", () => setOpen(!mainNav.classList.contains("is-open")));
   if (navClose) navClose.addEventListener("click", () => setOpen(false));
 
-  $$(".nav__link").forEach(link => {
+  // Vestuário / Acessórios / Equipamentos: no mobile, tocar expande as
+  // subcategorias dentro do próprio menu (acordeão); no desktop isso é
+  // ignorado porque o hover (CSS) já cuida de mostrar o painel.
+  $$(".nav__item--dropdown > .nav__link").forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (window.innerWidth > 980) return;
+      const item = btn.closest(".nav__item--dropdown");
+      const open = item.classList.toggle("is-open");
+      btn.setAttribute("aria-expanded", open);
+      $$(".nav__item--dropdown").forEach(other => {
+        if (other !== item) {
+          other.classList.remove("is-open");
+          other.querySelector(".nav__link")?.setAttribute("aria-expanded", "false");
+        }
+      });
+    });
+  });
+
+  $$(".nav__link, .nav__dropdown a").forEach(link => {
     link.addEventListener("click", () => {
       if (window.innerWidth <= 980 && link.tagName === "A") setOpen(false);
     });
@@ -252,6 +297,7 @@ function initCommonLayout() {
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
   saveFavorites();
+  renderCategoryNav();
   initHeaderSearch();
   initMobileMenu();
   initTrustBar();
@@ -261,8 +307,7 @@ function initCommonLayout() {
   if (privacy) privacy.addEventListener("click", (e) => { e.preventDefault(); showToast("Política de Privacidade em elaboração."); });
   const affiliates = $("#footerAffiliates");
   if (affiliates) affiliates.addEventListener("click", (e) => { e.preventDefault(); showToast("Programa de Afiliados em elaboração."); });
-  const cursos = $("#navCursos");
-  if (cursos) cursos.addEventListener("click", (e) => { e.preventDefault(); showToast("Cursos DomRoping em breve — em outro site."); });
+  // "Cursos" volta ao menu numa etapa futura, quando a DomRoping Academy for lançada.
 }
 
 document.addEventListener("DOMContentLoaded", initCommonLayout);
