@@ -1,342 +1,81 @@
-/* ==========================================================================
-   DOMROPING — COMMON
-   Funções compartilhadas por todas as páginas (Home, Catálogo, Produto, Categorias, Favoritos).
-   Depende de data.js (deve ser carregado antes deste arquivo).
-   ========================================================================== */
+/**
+ * Common JavaScript - Menu Mobile Corrigido
+ */
 
-const $ = (sel, ctx = document) => ctx.querySelector(sel);
-const $$ = (sel, ctx = document) => Array.from(ctx.querySelectorAll(sel));
-
-/* ---------- FAVORITOS (persistem no navegador via localStorage) ---------- */
-const FAVORITES_KEY = "domroping-favoritos";
-const favorites = new Set(JSON.parse(localStorage.getItem(FAVORITES_KEY) || "[]"));
-
-function saveFavorites() {
-  try { localStorage.setItem(FAVORITES_KEY, JSON.stringify([...favorites])); } catch (e) { /* ambiente sem storage: ignora */ }
-  const badge = $("#favCount");
-  if (badge) badge.textContent = favorites.size;
-}
-
-function toggleFavorite(id) {
-  id = Number(id);
-  const product = PRODUCTS.find(p => p.id === id);
-  if (!product) return;
-  const nome = isPlaceholderProduct(product) ? "Produto em cadastro" : product.nome;
-  if (favorites.has(id)) {
-    favorites.delete(id);
-    showToast(`${nome} removido dos favoritos.`);
-  } else {
-    favorites.add(id);
-    showToast(`${nome} adicionado aos favoritos.`);
-  }
-  saveFavorites();
-  $$(`[data-fav="${id}"]`).forEach(btn => {
-    btn.classList.toggle("is-active", favorites.has(id));
-    btn.setAttribute("aria-pressed", favorites.has(id));
-  });
-  document.dispatchEvent(new CustomEvent("favorites:changed"));
-}
-
-/* ---------- TOAST ---------- */
-function showToast(message) {
-  const toast = $("#toast");
-  if (!toast) return;
-  toast.textContent = message;
-  toast.classList.add("is-visible");
-  clearTimeout(showToast._t);
-  showToast._t = setTimeout(() => toast.classList.remove("is-visible"), 2400);
-}
-
-/* ---------- FORMATAÇÃO ---------- */
-function formatPrice(value) {
-  if (value === null || value === undefined) return "";
-  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
-
-function discountPercent(product) {
-  if (!product.preco || !product.precoAnterior || product.precoAnterior <= product.preco) return 0;
-  return Math.round((1 - product.preco / product.precoAnterior) * 100);
-}
-
-/* ---------- PLACEHOLDER DE IMAGEM ---------- */
-function placeholderMarkup(product, size = "md") {
-  const icon = iconFor(product);
-  return `<div class="product-placeholder product-placeholder--${size}">${icon}<span>Imagem do produto</span></div>`;
-}
-
-const heartIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7.5-4.6-10-9.3C.5 8 2 4.5 5.6 4c2-.3 3.8.6 4.9 2.3C11.6 4.6 13.4 3.7 15.4 4 19 4.5 20.5 8 19 11.7 16.5 16.4 9 21 9 21z" transform="translate(3 0) scale(0.9)"/></svg>';
-
-/* ---------- CARD DE PRODUTO (link real para a página do produto) ---------- */
-function productCard(product, { badgeText = "" } = {}) {
-  const capa = product.imagens && product.imagens[0];
-  const isPlaceholder = isPlaceholderProduct(product);
-  const media = capa
-    ? `<img src="${capa}" alt="${product.nome} — ${product.marca}" loading="lazy">`
-    : placeholderMarkup(product);
-
-  const isFav = favorites.has(product.id);
-  const desconto = discountPercent(product);
-  const badge = badgeText || (isPlaceholder ? "Em breve" : (desconto > 0 ? `-${desconto}%` : ""));
-
-  const nome = isPlaceholder ? "Produto em cadastro" : product.nome;
-  const marca = product.marca || "\u00A0";
-  const precoTexto = isPlaceholder ? "Em breve" : formatPrice(product.preco);
-  const loja = product.loja ? `Vendido por ${product.loja}` : "\u00A0";
-
-  return `
-    <article class="product-card ${isPlaceholder ? "product-card--placeholder" : ""}" data-id="${product.id}">
-      <a class="product-card__link" href="produto.html?id=${product.id}" aria-label="Ver detalhes de ${nome}">
-        <div class="product-card__media">
-          ${media}
-          ${badge ? `<span class="product-card__badge">${badge}</span>` : ""}
-        </div>
-        <div class="product-card__body">
-          <span class="product-card__brand">${marca}</span>
-          <h3 class="product-card__name">${nome}</h3>
-          <span class="product-card__price-old">${product.precoAnterior ? formatPrice(product.precoAnterior) : "\u00A0"}</span>
-          <span class="product-card__price">${precoTexto}</span>
-          <span class="product-card__store">${loja}</span>
-        </div>
-      </a>
-      <button class="product-card__fav ${isFav ? "is-active" : ""}" data-fav="${product.id}" aria-label="Favoritar ${nome}" aria-pressed="${isFav}">
-        ${heartIcon}
-      </button>
-    </article>`;
-}
-
-/* Delegação de eventos: favoritar em qualquer grade, em qualquer página */
-document.addEventListener("click", (e) => {
-  const favBtn = e.target.closest("[data-fav]");
-  if (favBtn) { e.preventDefault(); toggleFavorite(favBtn.dataset.fav); return; }
+document.addEventListener("DOMContentLoaded", () => {
+    initMobileMenu();
 });
 
-/* ---------- CABEÇALHO: categorias direto no menu ----------
-   Injeta Vestuário / Acessórios / Equipamentos (cada um com suas
-   subcategorias) antes do item "Favoritos". Vem de CATEGORY_TREE em
-   data.js, então se a taxonomia mudar, o menu acompanha sozinho. */
-function renderCategoryNav() {
-  const anchor = $("#navFavoritosItem");
-  if (!anchor) return;
-  if (typeof MAIN_CATEGORIES === "undefined" || typeof CATEGORY_TREE === "undefined") return;
-
-  const chevron = '<svg class="nav__link__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>';
-
-  const itemsHTML = MAIN_CATEGORIES.map(cat => {
-    const subLinks = CATEGORY_TREE[cat].map(sub =>
-      `<a href="produtos.html?cat=${encodeURIComponent(cat)}&sub=${encodeURIComponent(sub)}">${sub}</a>`
-    ).join("");
-    return `
-      <li class="nav__item nav__item--dropdown">
-        <button class="nav__link" aria-expanded="false" aria-haspopup="true">${cat}${chevron}</button>
-        <div class="nav__dropdown">
-          <span class="nav__dropdown-heading">${cat}</span>
-          ${subLinks}
-        </div>
-      </li>`;
-  }).join("");
-
-  anchor.insertAdjacentHTML("beforebegin", itemsHTML);
-}
-
-/* ---------- CABEÇALHO: busca instantânea ---------- */
-function initHeaderSearch() {
-  const searchToggle = $("#searchToggle");
-  const searchBox = $("#searchBox");
-  const searchInput = $("#searchInput");
-  const searchResults = $("#searchResults");
-  if (!searchToggle || !searchBox || !searchInput || !searchResults) return;
-
-  searchToggle.addEventListener("click", () => {
-    const isOpen = searchBox.classList.toggle("search--open");
-    if (isOpen) searchInput.focus();
-    else { searchResults.hidden = true; searchInput.value = ""; }
-  });
-
-  function matches(product, q) {
-    const haystack = `${product.nome} ${product.marca} ${product.categoria} ${product.subcategoria} ${(product.tags || []).join(" ")}`.toLowerCase();
-    return haystack.includes(q);
-  }
-
-  function renderResults(query) {
-    if (!query) { searchResults.hidden = true; return; }
-    const q = query.toLowerCase();
-    const results = PRODUCTS.filter(p => !isPlaceholderProduct(p) && matches(p, q)).slice(0, 6);
-
-    searchResults.hidden = false;
-    if (results.length === 0) {
-      searchResults.innerHTML = `<div class="search-results__inner"><div class="search-results__empty">Nenhum resultado para "${query}". Tente buscar por categoria ou produto.</div></div>`;
-      return;
-    }
-
-    searchResults.innerHTML = `<div class="search-results__inner">
-      ${results.map(p => `
-        <a class="search-result" href="produto.html?id=${p.id}">
-          <div class="search-result__thumb">${p.imagens[0] ? `<img src="${p.imagens[0]}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">` : placeholderMarkup(p, "sm")}</div>
-          <div>
-            <div class="search-result__name">${p.nome}</div>
-            <div class="search-result__meta">${p.marca} · ${p.subcategoria} · ${formatPrice(p.preco)}</div>
-          </div>
-        </a>
-      `).join("")}
-      <a class="search-result search-result--all" href="produtos.html?q=${encodeURIComponent(query)}">Ver todos os resultados para "${query}"</a>
-    </div>`;
-  }
-
-  searchInput.addEventListener("input", (e) => renderResults(e.target.value.trim()));
-  searchInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && searchInput.value.trim()) {
-      window.location.href = `produtos.html?q=${encodeURIComponent(searchInput.value.trim())}`;
-    }
-  });
-
-  document.addEventListener("click", (e) => {
-    if (!searchBox.contains(e.target)) searchResults.hidden = true;
-  });
-}
-
-/* ---------- BARRA DE CONFIANÇA (ticker animado) ---------- */
-function initTrustBar() {
-  const track = $("#trustBarTrack");
-  if (!track) return;
-  // duplica o conteúdo para permitir loop infinito via CSS (translateX -50%)
-  track.innerHTML = track.innerHTML + track.innerHTML;
-}
-
-/* ---------- BOTÃO DE FAVORITOS NO CABEÇALHO ---------- */
-function initFavoritesButton() {
-  const btn = $("#favoritesBtn");
-  if (!btn) return;
-  btn.addEventListener("click", () => { window.location.href = "favoritos.html"; });
-}
-
-/* ---------- MENU MOBILE ---------- */
 function initMobileMenu() {
-  const menuToggle = $("#menuToggle");
-  const mainNav = $("#mainNav");
-  const navClose = $("#navClose");
-  if (!menuToggle || !mainNav) return;
+    const menuToggle = document.getElementById("menuToggle");
+    const mainNav = document.getElementById("mainNav");
+    const navClose = document.getElementById("navClose");
+    const navOverlay = document.getElementById("navOverlay");
 
-  let lockedScrollY = 0;
+    if (!menuToggle || !mainNav) return;
 
-  function setOpen(open) {
-    mainNav.classList.toggle("is-open", open);
-    menuToggle.classList.toggle("is-open", open);
-    menuToggle.setAttribute("aria-expanded", open);
+    // Função centralizada para abrir/fechar o menu
+    function setOpen(open) {
+        mainNav.classList.toggle("is-open", open);
+        menuToggle.classList.toggle("is-open", open);
+        menuToggle.setAttribute("aria-expanded", open ? "true" : "false");
 
-    // Trava de scroll robusta para iOS: overflow:hidden sozinho no body é
-    // conhecido por falhar no Safari (o fundo ainda "arrasta"/dá bounce,
-    // o que passa a sensação de menu travado). Fixar o body na posição
-    // atual e restaurar o scroll ao fechar resolve isso de forma confiável.
-    if (open) {
-      lockedScrollY = window.scrollY;
-      document.body.classList.add("nav-open");
-      document.body.style.top = `-${lockedScrollY}px`;
-    } else {
-      document.body.classList.remove("nav-open");
-      document.body.style.top = "";
-      window.scrollTo(0, lockedScrollY);
+        if (navOverlay) {
+            navOverlay.classList.toggle("is-open", open);
+        }
+
+        if (open) {
+            document.body.classList.add("nav-open");
+        } else {
+            document.body.classList.remove("nav-open");
+        }
     }
-  }
 
-  menuToggle.addEventListener("click", () => setOpen(!mainNav.classList.contains("is-open")));
-  if (navClose) navClose.addEventListener("click", () => setOpen(false));
-
-  // Vestuário / Acessórios / Equipamentos: no mobile, tocar expande as
-  // subcategorias dentro do próprio menu (acordeão); no desktop isso é
-  // ignorado porque o hover (CSS) já cuida de mostrar o painel.
-  $$(".nav__item--dropdown > .nav__link").forEach(btn => {
-    btn.addEventListener("click", () => {
-      if (window.innerWidth > 980) return;
-      const item = btn.closest(".nav__item--dropdown");
-      const open = item.classList.toggle("is-open");
-      btn.setAttribute("aria-expanded", open);
-      $$(".nav__item--dropdown").forEach(other => {
-        if (other !== item) {
-          other.classList.remove("is-open");
-          other.querySelector(".nav__link")?.setAttribute("aria-expanded", "false");
-        }
-      });
+    // Clique no botão hambúrguer / 3 pontos
+    menuToggle.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const isOpen = mainNav.classList.contains("is-open");
+        setOpen(!isOpen);
     });
-  });
 
-  $$(".nav__link, .nav__dropdown a").forEach(link => {
-    link.addEventListener("click", () => {
-      if (window.innerWidth <= 980 && link.tagName === "A") setOpen(false);
-    });
-  });
+    // Clique no botão fechar (X)
+    if (navClose) {
+        navClose.addEventListener("click", (e) => {
+            e.stopPropagation();
+            setOpen(false);
+        });
+    }
 
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") setOpen(false);
-  });
+    // Clique fora do menu (overlay)
+    if (navOverlay) {
+        navOverlay.addEventListener("click", () => {
+            setOpen(false);
+        });
+    }
 
-  window.addEventListener("resize", () => { if (window.innerWidth > 980) setOpen(false); });
-}
-
-/* ---------- SCROLL REVEAL ---------- */
-function initScrollReveal() {
-  const targets = $$("[data-reveal], [data-reveal-group]");
-  if (!targets.length) return;
-
-  // Sem suporte a IntersectionObserver (ou qualquer outro problema): revela
-  // tudo na hora. Conteúdo visível é sempre prioridade sobre a animação.
-  if (typeof IntersectionObserver !== "function") {
-    targets.forEach(t => t.classList.add("is-visible"));
-    return;
-  }
-
-  try {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("is-visible");
-          observer.unobserve(entry.target);
+    // Suporte a fechamento ao pressionar a tecla ESC
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && mainNav.classList.contains("is-open")) {
+            setOpen(false);
         }
-      });
-    }, { threshold: 0.15, rootMargin: "0px 0px -60px 0px" });
+    });
 
-    targets.forEach(t => observer.observe(t));
+    // Resetar estado se a tela for redimensionada para desktop (> 980px)
+    window.addEventListener("resize", () => {
+        if (window.innerWidth > 980) {
+            setOpen(false);
+        }
+    });
 
-    // Rede de segurança: se por qualquer motivo o observer não disparar
-    // (bug de navegador, elemento fora do fluxo normal etc.), garante que
-    // nada fique escondido pra sempre.
-    setTimeout(() => targets.forEach(t => t.classList.add("is-visible")), 2500);
-  } catch (err) {
-    console.error("[DomRoping] Scroll reveal falhou, revelando conteúdo direto:", err);
-    targets.forEach(t => t.classList.add("is-visible"));
-  }
+    // Lógica para submenus (Dropdowns) no Mobile
+    const dropdownBtns = document.querySelectorAll(".nav__item--dropdown > .nav__link");
+    dropdownBtns.forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            if (window.innerWidth <= 980) {
+                e.preventDefault();
+                const parentItem = btn.parentElement;
+                parentItem.classList.toggle("is-active");
+            }
+        });
+    });
 }
-
-function markSectionsForReveal(groupSelectors = []) {
-  $$(".section__head").forEach(el => el.setAttribute("data-reveal", ""));
-  groupSelectors.forEach(sel => { const el = $(sel); if (el) el.setAttribute("data-reveal-group", ""); });
-}
-
-/* ---------- INICIALIZAÇÃO COMUM A TODA PÁGINA ---------- */
-function initCommonLayout() {
-  const yearEl = $("#year");
-  if (yearEl) yearEl.textContent = new Date().getFullYear();
-
-  saveFavorites();
-
-  // Cada peça do cabeçalho roda isolada: se uma falhar, as outras (em
-  // especial o menu mobile) continuam funcionando normalmente em vez de
-  // travar tudo em cascata.
-  const steps = [
-    ["renderCategoryNav", renderCategoryNav],
-    ["initMobileMenu", initMobileMenu],
-    ["initHeaderSearch", initHeaderSearch],
-    ["initTrustBar", initTrustBar],
-    ["initFavoritesButton", initFavoritesButton],
-  ];
-  steps.forEach(([name, fn]) => {
-    try { fn(); } catch (err) { console.error(`[DomRoping] Falha ao iniciar ${name}:`, err); }
-  });
-
-  const privacy = $("#footerPrivacy");
-  if (privacy) privacy.addEventListener("click", (e) => { e.preventDefault(); showToast("Política de Privacidade em elaboração."); });
-  const affiliates = $("#footerAffiliates");
-  if (affiliates) affiliates.addEventListener("click", (e) => { e.preventDefault(); showToast("Programa de Afiliados em elaboração."); });
-  // "Cursos" volta ao menu numa etapa futura, quando a DomRoping Academy for lançada.
-}
-
-document.addEventListener("DOMContentLoaded", initCommonLayout);
